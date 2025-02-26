@@ -1,0 +1,88 @@
+pipeline {
+    agent any
+	 environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhubtoken')
+    }
+    stages {
+        stage('compile') {
+	   steps {
+                echo 'compiling..'
+		git url: 'https://github.com/puneetgavri/DevopsProjectSampleJavaApp.git'
+		sh script: '/opt/maven/bin/mvn compile'
+           }
+        }
+        stage('codereview-pmd') {
+	   steps {
+                echo 'codereview..'
+		sh script: '/opt/maven/bin/mvn -P metrics pmd:pmd'
+           }
+	   post {
+               success {
+		   recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml')
+               }
+           }		
+        }
+        stage('unit-test') {
+	   steps {
+                echo 'unittest..'
+	        sh script: '/opt/maven/bin/mvn test'
+                 }
+	   post {
+               success {
+                   junit 'target/surefire-reports/*.xml'
+               }
+           }			
+        }
+        stage('codecoverage') {
+	   steps {
+                echo 'unittest..'
+	        sh script: '/opt/maven/bin/mvn verify'
+                 }
+	   post {
+               success {
+                   jacoco buildOverBuild: true, deltaBranchCoverage: '20', deltaClassCoverage: '20', deltaComplexityCoverage: '20', deltaInstructionCoverage: '20', deltaLineCoverage: '20', deltaMethodCoverage: '20'
+               }
+           }			
+        }
+        stage('package') {
+	   steps {
+                echo 'package......'
+	sh script: '/opt/maven/bin/mvn package'	
+           }		
+        }
+        stage("Build Docker Image") {
+            steps{
+               sh "docker build -t puneetgavri/sampleappimage:latest ."
+            }
+        }
+
+       stage('Scan Docker Image') {
+            steps {
+                script {
+                    // Run Trivy to scan the Docker image
+                    def trivyOutput = sh(script: "trivy image puneetgavri/sampleappimage:latest", returnStdout: true).trim()
+
+                    // Display Trivy scan results
+                    println trivyOutput
+
+                    // Check if vulnerabilities were found
+                    if (trivyOutput.contains("Total: 0")) {
+                        echo "No vulnerabilities found in the Docker image."
+                    } else {
+                        echo "Vulnerabilities found in the Docker image."
+                        // You can take further actions here based on your requirements
+                        // For example, failing the build if vulnerabilities are found
+                        // error "Vulnerabilities found in the Docker image."
+                    }
+                }
+            }
+        }
+        
+        stage("Docker Push"){
+            steps{
+            sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            sh "docker push puneetgavri/sampleappimage:latest"
+            }
+        }
+    }
+}
