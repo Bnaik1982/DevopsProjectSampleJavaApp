@@ -5,7 +5,7 @@ pipeline {
 	   steps {
                 echo 'compiling..'
 		   echo 'compiling again and again'
-				git url: 'https://github.com/puneetgavri/DevopsProjectSampleJavaApp.git'
+				git url: 'https://github.com/bnaik1982/DevopsProjectSampleJavaApp.git'
 				sh script: '/opt/maven/bin/mvn compile'
            }
         }
