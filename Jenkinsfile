@@ -1,56 +1,29 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven 3.x'  // Ensure Maven is configured in Jenkins
+    }
+
     stages {
-        stage('code clone') {
+        stage('Checkout Code') {
             steps {
-                echo 'Cloning code...'
-                git 'https://github.com/bnaik1982/DevopsProjectSampleJavaApp.git'
+                git 'https://github.com/bnaik1982/DevopsProjectSampleJavaApp.git'  // Replace with your repository
             }
         }
-         stage('Compile') {
+
+        stage('Build & Run PMD') {
             steps {
-                echo 'Compileing the code...'
-                sh '/opt/maven/bin/mvn compile'
+                sh 'mvn clean verify'  // Runs PMD check
             }
         }
-        stage('SCA') {
+
+        stage('Publish PMD Report') {
             steps {
-                echo 'Static Code Analysis'
-                sh '/opt/maven/bin/mvn -P metrics pmd:pmd'
-            }
-          //  post {
-          //     success {
-	//	   recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml')
-           //    }
-        //   }	
-        }
-        stage('test') {
-            steps {
-                echo 'unit testing...'
-                sh '/opt/maven/bin/mvn test'
-            }
-        //    post {
-        //      success {
-        //           junit 'target/surefire-reports/*.xml'
-       //        }
-        //   }	
-        }
-        stage('codecoverage') {
-	   steps {
-                echo 'unittest..'
-	        sh script: '/opt/maven/bin/mvn verify'
-                 }
-	//   post {
-         //      success {
-        //           jacoco buildOverBuild: true, deltaBranchCoverage: '20', deltaClassCoverage: '20', deltaComplexityCoverage: '20', deltaInstructionCoverage: '20', deltaLineCoverage: '20', deltaMethodCoverage: '20'
-         //      }
-       //    }			
-        }
-        stage('package') {
-            steps {
-                echo 'Creatig package...'
-                sh '/opt/maven/bin/mvn package'
+                recordIssues(
+                    tool: pmdParser(),
+                    pattern: '**/target/pmd.xml'
+                )
             }
         }
     }
