@@ -50,5 +50,12 @@ pipeline {
 				sh script: '/opt/maven/bin/mvn package'	
            }		
         }
+ stage('install') {
+	   steps {
+                echo 'Inslalling...............'
+				sh script: '/opt/maven/bin/mvn install'	
+           }		
+        }
+	    
     }
 }
