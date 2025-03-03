@@ -4,6 +4,7 @@ pipeline {
        stage('compile') {
 	   steps {
                 echo 'compiling..'
+		   echo 'compiling again and again'
 				git url: 'https://github.com/puneetgavri/DevopsProjectSampleJavaApp.git'
 				sh script: '/opt/maven/bin/mvn compile'
            }
@@ -11,6 +12,7 @@ pipeline {
        stage('codereview-pmd') {
 	   steps {
                 echo 'codereview..'
+		   echo 'codereview again and again'
 				sh script: '/opt/maven/bin/mvn -P metrics pmd:pmd'
            }
 		post {
@@ -33,6 +35,7 @@ pipeline {
         stage('codecoverage') {
 	   steps {
                 echo 'unittest..'
+		    echo 'codecoverage again and again'
 	        sh script: '/opt/maven/bin/mvn verify'
                  }
 	   post {
