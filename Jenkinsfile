@@ -5,7 +5,7 @@ pipeline {
         stage('code clone') {
             steps {
                 echo 'Cloning code...'
-                git 'https://github.com/puneetgavri/DevopsProjectSampleJavaApp.git'
+                git 'https://github.com/bnaik1982/DevopsProjectSampleJavaApp.git'
             }
         }
          stage('Compile') {
